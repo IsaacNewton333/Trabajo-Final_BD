@@ -7,6 +7,7 @@ fecha_actual = datetime.now()
 # Formatear la fecha en el formato de SQLite
 fecha_sqlite = fecha_actual.strftime('%Y-%m-%d %H:%M:%S')
 
+# TODO: Corregir INSERTS de clientes, Proveedor y Usuario.
 
 class PuntoDeVentaApp:
     def __init__(self, root):
@@ -24,7 +25,6 @@ class PuntoDeVentaApp:
         self.tab_empleados = ttk.Frame(self.tabControl)
         self.tab_usuarios = ttk.Frame(self.tabControl)
         
-
         # Configurar pestañas
         
         self.tabControl.add(self.tab_producto, text='Producto')
@@ -45,7 +45,7 @@ class PuntoDeVentaApp:
         self.inicializar_interfaz_proveedor()
         
         self.inicializar_interfaz_cliente()
-#Pendiente porque no funcionan esas pestañas        
+        #Pendiente porque no funcionan esas pestañas        
         self.inicializar_interfaz_reparacion()
         
         self.inicializar_interfaz_detalle_reparacion()
@@ -156,7 +156,7 @@ class PuntoDeVentaApp:
         self.entry_correo_cliente.grid(row=3, column=1, padx=10, pady=10)  
         # Botón para agregar cliente 
         #no jala la seccion btn
-        btn_agregar_cliente = tk.Button(self.tab_cliente, text="Agregar cliente", command=self.detalle_venta)
+        btn_agregar_cliente = tk.Button(self.tab_cliente, text="Agregar cliente", command=self.agregar_cliente)
         btn_agregar_cliente.grid(row=4, column=0, columnspan=5, pady=10)      
     
     def inicializar_interfaz_proveedor(self):
@@ -185,7 +185,7 @@ class PuntoDeVentaApp:
         self.entry_correo.grid(row=4, column=1, padx=10, pady=10)
         # Botón para agregar proveedor
         #no jala la seccion btn
-        btn_agregar_proveedor = tk.Button(self.tab_proveedor, text="Agregar proveedor", command=self.detalle_venta)
+        btn_agregar_proveedor = tk.Button(self.tab_proveedor, text="Agregar proveedor", command=self.agregar_proveedor)
         btn_agregar_proveedor.grid(row=5, column=0, columnspan=5, pady=10)
 
     def inicializar_interfaz_reparacion(self):
@@ -234,6 +234,7 @@ class PuntoDeVentaApp:
         #no jala la seccion btn
         btn_agregar_Usuario = tk.Button(self.tab_empleados, text="Agregar usuario", command=self.detalle_venta)
         btn_agregar_Usuario.grid(row=4, column=0, columnspan=5, pady=10)
+
     def inicializar_interfaz_usuarios(self):
 
         lbl_NombreUsuario = tk.Label(self.tab_usuarios, text="Nombre usuario:")
@@ -247,7 +248,7 @@ class PuntoDeVentaApp:
         self.entry_Contraseña = tk.Entry(self.tab_usuarios)
         self.entry_Contraseña.grid(row=1, column=1, padx=10, pady=10) 
 
-        btn_agregar_Usuario = tk.Button(self.tab_usuarios, text="Agregar usuario", command=self.detalle_venta)
+        btn_agregar_Usuario = tk.Button(self.tab_usuarios, text="Agregar usuario", command=self.agregar_usuario)
         btn_agregar_Usuario.grid(row=4, column=0, columnspan=5, pady=10)
 
        
@@ -279,6 +280,9 @@ class PuntoDeVentaApp:
         self.entry_precio_del_producto = None
     
     def agregar_reparacion(self):
+        # Inicializar la base de datos
+        self.db_manager = DBManager()
+
         reparacion_cantidad = self.entry_detalle_cantidad.get()#
         detalle_costo = self.entry_detalle_costo.get()#
 
@@ -295,36 +299,105 @@ class PuntoDeVentaApp:
             return
 
         # Insertar el nuevo producto en el inventario
-        self.db_manager.agregar_producto(nombre_producto, descripcion_producto, precio_producto, cantidad_stock, status_producto)
+        self.db_manager.agregar_reparacion(reparacion_cantidad, detalle_costo)
+        # self.db_manager.agregar_producto(nombre_producto, descripcion_producto, precio_producto, cantidad_stock, status_producto)
 
         # Mostrar un mensaje de éxito
-        messagebox.showinfo("Éxito", "Producto agregado al inventario con éxito.")
+        messagebox.showinfo("Éxito", "Reparacion agregada con éxito.")
 
         # Limpiar los campos de entrada después de agregar el producto
         self.entry_detalle_cantidad = None
         self.entry_detalle_costo = None
-        
-        # Inicializar la base de datos
-        self.db_manager = DBManager()
     
     
     #def agregar_proveedor(self):
+    def agregar_proveedor(self):
+        # Conexion con el editor.
+        self.db_manager = DBManager()
+
+        # Declarar parametros.
+        nombre_proveedor = self.entry_proveedor
+        status_proveedor = self.entry_status
+        telefono_proveedor = self.entry_telefono
+        correo_proveedor = self.entry_telefono
+
+        if not nombre_proveedor or not status_proveedor or not telefono_proveedor or not correo_proveedor:
+            messagebox.showerror("Error", "Por favor, complete todos los campos.")
+            return
+        
+        # Llamar a la funcion para agregar al proveedor.
+        self.db_manager.agregar_proveedor(nombre_proveedor, status_proveedor, telefono_proveedor, correo_proveedor)
+
+
+
     #def agregar_cliente(self):
+    def agregar_cliente(self):
+        # Conexion con el editor.
+        self.db_manager = DBManager()
+
+        # Declarar variables.
+        cliente = self.entry_nombre_cliente
+        direccion = self.entry_direccion
+        telefono = str(self.entry_telefono_cliente)
+        correo = self.entry_correo_cliente
+
+        if not cliente or not direccion or not telefono or not correo:
+            messagebox.showerror("Error", "Por favor, complete todos los campos.")
+            return
+        
+        # Llamar a la funcion para insertar a los clientes.
+        self.db_manager.agregar_cliente(cliente, direccion, telefono, correo)
+
+
     
     #def detalle_reparacion(self):
     #def agregar_empleado(self):
 
+    def agregar_empleado(self, nombre, apellido_p, apellido_m, status, salario, cargo, telefono, fecha_inicio):
+        modificado_por = 2
+        fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.cursor.execute("INSERT INTO Empleado (Nombre, ApellidoP, ApellidoM, Status, Salario, Cargo, Telefono, FechaInicio, FechaModificacion, ModificadoPor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                            (nombre, apellido_p, apellido_m, status, salario, cargo, telefono, fecha_inicio, fecha_actual, modificado_por))
+        self.conexion.commit()
+        self.conexion.close()
+    
+
     #def agregar_usuario(self):
+
+    def agregar_usuario(self):
+        # Inicializar la base de datos
+        self.db_manager = DBManager()
+
+        nombre_usuario = self.entry_NombreUsuario
+        contraseña = self.entry_Contraseña
+
+        if not nombre_usuario or not contraseña:
+            messagebox.showerror("Error", "Por favor, complete todos los campos.")
+            return
+
+        # Insertar el nuevo producto en el inventario
+        self.db_manager.agregar_usuario(nombre_usuario, contraseña)
+
+        # Mostrar un mensaje de éxito
+        messagebox.showinfo("Éxito", "Usuario agregado con éxito.")
+
+        # Limpiar los campos.
+        self.entry_NombreUsuario.delete(0, 'end')
+        self.entry_Contraseña.delete(0, 'end')
         
 
     def agregar_producto(self):
+        # Inicializar la base de datos
+        self.db_manager = DBManager()
+
         # Obtener la información ingresada por el usuario
-        nombre_producto = self.entry_nombre_producto.get()#
-        descripcion_producto = self.entry_descripcion.get()#
-        precio_producto = self.entry_precio_producto.get()#
-        cantidad_stock = self.entry_stock.get()#
+        nombre_producto = self.entry_nombre_producto.get()
+        descripcion_producto = self.entry_descripcion.get()
+        precio_producto = self.entry_precio_producto.get()
+        cantidad_stock = self.entry_stock.get()
         status_producto = self.entry_status_producto.get()
         fecha_creacion = datetime.now()
+
         # Validar que se hayan ingresado valores
         if not nombre_producto or not cantidad_stock or not descripcion_producto or not precio_producto or not status_producto:
             messagebox.showerror("Error", "Por favor, complete todos los campos.")
@@ -345,15 +418,12 @@ class PuntoDeVentaApp:
         # Mostrar un mensaje de éxito
         messagebox.showinfo("Éxito", "Producto agregado al inventario con éxito.")
 
-        # Limpiar los campos de entrada después de agregar el producto
-        """ self.entry_nombre_producto = None
-        self.entry_descripcion = None
-        self.entry_precio = None
-        self.entry_stock = None
-        self.entry_status_producto = None """
-#        self.entry_fecha_creacion = None
-        # Inicializar la base de datos
-        self.db_manager = DBManager()
+        # Limpiar los campos.
+        self.entry_nombre_producto.delete(0, 'end')
+        self.entry_descripcion.delete(0, 'end')
+        self.entry_precio_producto.delete(0, 'end')
+        self.entry_stock.delete(0, 'end')
+        self.entry_status_producto.delete(0, 'end')
 
     # ... (resto del código es igual)
 
@@ -382,16 +452,119 @@ class DBManager:
                 FechaModificacion DATETIME
             )
         ''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS Empleados (
+                ID_Empleado INTEGER PRIMARY KEY,
+                Nombre TEXT,
+                ApellidoP TEXT,
+                ApellidoM TEXT,
+                Status INTEGER,
+                Salario REAL,
+                Cargo TEXT,
+                Telefono TEXT,
+                FechaInicio DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FechaModificacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+                -- Restricción única para evitar empleados duplicados basados en nombre y apellidos
+                CONSTRAINT unique_empleado UNIQUE (Nombre, ApellidoP, ApellidoM)
+            )''')
+
+        self.cursor.execute("""
+            CREATE TABLE IF NOT EXISTS DetalleReparacion (
+                ID_DetalleReparacion INTEGER PRIMARY KEY,
+                ID_Reparacion INTEGER REFERENCES Reparacion(ID_Reparacion),
+                ID_Producto INTEGER REFERENCES Producto(ID_Producto),
+                Cantidad INTEGER,
+                Costo REAL,
+                CreadoPor INTEGER REFERENCES Empleados(ID_Empleado),
+                FechaCreacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+                ModificadoPor INTEGER REFERENCES Empleados(ID_Empleado),
+                FechaModificacion DATETIME DEFAULT CURRENT_TIMESTAMP
+            )""")
+
+        self.cursor.execute("""CREATE TABLE IF NOT EXISTS Cliente (
+                ID_Cliente INTEGER PRIMARY KEY,
+                Nombre TEXT,
+                Direccion TEXT,
+                Telefono TEXT,
+                Correo TEXT,
+                CreadoPor INTEGER REFERENCES Empleados(ID_Empleado),
+                FechaCreacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+                ModificadoPor INTEGER REFERENCES Empleados(ID_Empleado),
+                FechaModificacion DATETIME DEFAULT CURRENT_TIMESTAMP
+            ) """)
+
+        self.cursor.execute("""CREATE TABLE IF NOT EXISTS Proveedor (
+                ID_Proveedor INTEGER PRIMARY KEY,
+                Nombre TEXT,
+                ApellidoP TEXT,
+                ApellidoM TEXT,
+                Status INTEGER,
+                Correo TEXT,
+                Direccion TEXT,
+                Telefono TEXT,
+                CreadoPor INTEGER REFERENCES Empleados(ID_Empleado),
+                FechaCreacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+                ModificadoPor INTEGER REFERENCES Empleados(ID_Empleado),
+                FechaModificacion DATETIME DEFAULT CURRENT_TIMESTAMP
+            ) """)
+
+        self.cursor.execute("""CREATE TABLE IF NOT EXISTS Usuarios (
+            ID_Usuario INTEGER PRIMARY KEY,
+            ID_Empleado INTEGER,
+            NombreUsuario TEXT UNIQUE,
+            Contraseña TEXT,
+            Rol INTEGER,
+            Status INTEGER,
+            FOREIGN KEY (ID_Empleado) REFERENCES Empleados (ID_Empleado),
+            FOREIGN KEY (Status) REFERENCES Empleados (Status)
+        ) """)
+
         print("Tabla creada con exito.")
         self.conexion.commit()
+
     def agregar_producto(self, nombre, descripcion, precio, stock, status):
-        # Insertar el nuevo producto en la tabla 'Producto'
-        creadopor = 1  # Puedes ajustar esto según tus necesidades
-        modificado_por = 2  # Puedes ajustar esto según tus necesidades
-        #Pewndiente el creado por
+        creadopor = 1
+        modificado_por = 2
+        fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.cursor.execute("INSERT INTO Producto (Nombre, Descripcion, Precio, Stock, Status, CreadoPor, FechaCreacion, ModificadoPor, FechaModificacion) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    (nombre, descripcion, precio, stock, status, creadopor, fecha_sqlite, modificado_por, fecha_sqlite))
+                            (nombre, descripcion, precio, stock, status, creadopor, fecha_actual, modificado_por, fecha_actual))
         self.conexion.commit()
+        self.conexion.close()
+    
+    def agregar_reparacion(self, reparacion_cantidad, detalle_costo):
+        creadopor = 1
+        modificado_por = 2
+        fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.cursor.execute("INSERT INTO DetalleReparacion (Cantidad, Costo, CreadoPor, FechaCreacion, ModificadoPor, FechaModificacion) VALUES (?, ?, ?, ?, ?, ?)",
+                            (reparacion_cantidad, detalle_costo, creadopor, fecha_actual, modificado_por, fecha_actual))
+        self.conexion.commit()
+        self.conexion.close()
+
+    def agregar_cliente(self, nombre, direccion, telefono, correo):
+        creadopor = 1
+        modificado_por = 2
+        fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.cursor.execute("INSERT INTO Cliente (Nombre, Direccion, Telefono, Correo, CreadoPor, FechaCreacion, ModificadoPor, FechaModificacion) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                            (nombre, direccion, telefono, correo, creadopor, fecha_actual, modificado_por, fecha_actual))
+        self.conexion.commit()
+        self.conexion.close()
+
+    def agregar_proveedor(self, nombre, status, telefono, correo):
+        creadopor = 1
+        modificado_por = 2
+        fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.cursor.execute("INSERT INTO Proveedor (Nombre, Telefono, Correo, CreadoPor, FechaCreacion, ModificadoPor, FechaModificacion) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                            (nombre, telefono, correo, creadopor, fecha_actual, modificado_por, fecha_actual))
+        self.conexion.commit()
+        self.conexion.close()
+
+    def agregar_usuario(self, nombre, contraseña):
+        creadopor = 1
+        modificado_por = 2
+        fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.cursor.execute("INSERT INTO Usuarios (NombreUsuario, Contraseña) VALUES (?, ?5)",
+                            (nombre, contraseña))
+        self.conexion.commit()
+        self.conexion.close()
 
     def __del__(self):
         # Cerrar la conexión a la base de datos al destruir el objeto
