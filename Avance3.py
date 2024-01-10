@@ -561,7 +561,7 @@ class DBManager:
         creadopor = 1
         modificado_por = 2
         fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self.cursor.execute("INSERT INTO Usuarios (NombreUsuario, Contraseña) VALUES (?, ?5)",
+        self.cursor.execute("INSERT INTO Usuarios (NombreUsuario, Contraseña) VALUES (?, ?)",
                             (nombre, contraseña))
         self.conexion.commit()
         self.conexion.close()
