@@ -7,7 +7,6 @@ fecha_actual = datetime.now()
 # Formatear la fecha en el formato de SQLite
 fecha_sqlite = fecha_actual.strftime('%Y-%m-%d %H:%M:%S')
 
-# TODO: Corregir INSERTS de clientes, Proveedor y Usuario.
 
 class PuntoDeVentaApp:
     def __init__(self, root):
@@ -316,10 +315,10 @@ class PuntoDeVentaApp:
         self.db_manager = DBManager()
 
         # Declarar parametros.
-        nombre_proveedor = self.entry_proveedor
-        status_proveedor = self.entry_status
-        telefono_proveedor = self.entry_telefono
-        correo_proveedor = self.entry_telefono
+        nombre_proveedor = self.entry_proveedor.get()
+        status_proveedor = self.entry_status.get()
+        telefono_proveedor = self.entry_telefono.get()
+        correo_proveedor = self.entry_telefono.get()
 
         if not nombre_proveedor or not status_proveedor or not telefono_proveedor or not correo_proveedor:
             messagebox.showerror("Error", "Por favor, complete todos los campos.")
@@ -336,10 +335,10 @@ class PuntoDeVentaApp:
         self.db_manager = DBManager()
 
         # Declarar variables.
-        cliente = self.entry_nombre_cliente
-        direccion = self.entry_direccion
-        telefono = str(self.entry_telefono_cliente)
-        correo = self.entry_correo_cliente
+        cliente = self.entry_nombre_cliente.get()
+        direccion = self.entry_direccion.get()
+        telefono = self.entry_telefono_cliente.get()
+        correo = self.entry_correo_cliente.get()
 
         if not cliente or not direccion or not telefono or not correo:
             messagebox.showerror("Error", "Por favor, complete todos los campos.")
@@ -368,8 +367,8 @@ class PuntoDeVentaApp:
         # Inicializar la base de datos
         self.db_manager = DBManager()
 
-        nombre_usuario = self.entry_NombreUsuario
-        contraseña = self.entry_Contraseña
+        nombre_usuario = self.entry_NombreUsuario.get()
+        contraseña = self.entry_Contraseña.get()
 
         if not nombre_usuario or not contraseña:
             messagebox.showerror("Error", "Por favor, complete todos los campos.")
